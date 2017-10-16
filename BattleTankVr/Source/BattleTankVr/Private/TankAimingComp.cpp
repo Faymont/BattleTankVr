@@ -2,7 +2,7 @@
 
 #include "TankAimingComp.h"
 #include "TankBarrel.h"
-
+#include "TankTurrent.h"
 // Sets default values for this component's properties
 UTankAimingComp::UTankAimingComp()
 {
@@ -16,7 +16,14 @@ UTankAimingComp::UTankAimingComp()
 
 void UTankAimingComp::SetBarrelReference(UTankBarrel* BarrelToSet)
 {
+	if(!BarrelToSet) { return; }
 	Barrel = BarrelToSet;
+}
+
+void UTankAimingComp::SetTurretReference(UTankTurrent* TurretToSet)
+{
+	if (!TurretToSet) { return; }
+	Turret = TurretToSet;
 }
 
 // Called when the game starts
@@ -40,7 +47,7 @@ void UTankAimingComp::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 void UTankAimingComp::AimAt(FVector HitLocation, float LaunchSpeed)
 {
 	if (!Barrel) { return; }
-
+	if (!Turret) { return; }
 	FVector OutLaunchVelocity;
 	FVector StartLocation = Barrel->GetSocketLocation(FName("Projectile"));
 	bool bHaveAimSolution = UGameplayStatics::SuggestProjectileVelocity(
@@ -49,28 +56,31 @@ void UTankAimingComp::AimAt(FVector HitLocation, float LaunchSpeed)
 		StartLocation,
 		HitLocation,
 		LaunchSpeed,
+		false,
+		0,
+		0,
 		ESuggestProjVelocityTraceOption::DoNotTrace
 	);
 	if (bHaveAimSolution)
 	{
 		auto AimDirection = OutLaunchVelocity.GetSafeNormal();
-		MoveBarrelTowards(AimDirection);
+		MoveTurrentAndBarelTowards(AimDirection);
 		auto Time = GetWorld()->GetTimeSeconds();
 		UE_LOG(LogTemp, Warning, TEXT("%f: aim solve found"), Time);
 	}
 	else {
 		auto Time = GetWorld()->GetTimeSeconds();
-		UE_LOG(LogTemp, Warning, TEXT("%f: No aim solve found"), Time);
+		UE_LOG(LogTemp, Warning, TEXT("%f: No solution found"), Time);
 	}
 }
 
-void UTankAimingComp::MoveBarrelTowards(FVector AimDirection) {
+void UTankAimingComp::MoveTurrentAndBarelTowards(FVector AimDirection) {
 	//difference between currnt barrel rot and ain direcation
 	//move 
 	auto BarrelRotation = Barrel->GetForwardVector().Rotation();
 	auto AimAsRotator = AimDirection.Rotation();
 	auto DeltaRotator = AimAsRotator - BarrelRotation;
-	UE_LOG(LogTemp, Warning, TEXT("AimAsRotator %s"), *AimAsRotator.ToString());
-
-	Barrel->Elevate(5);
+	Barrel->Elevate(DeltaRotator.Pitch);
+	Turret->Rotate(DeltaRotator.Yaw);
 }
+
