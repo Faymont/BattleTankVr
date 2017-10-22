@@ -5,11 +5,14 @@
 #include "CoreMinimal.h"
 #include "TankAimingComp.h"
 #include "GameFramework/Pawn.h"
+#include "Engine/World.h"
+#include "GameFramework/Actor.h"
+#include "Runtime/CoreUObject/Public/Templates/Casts.h"
 #include "Tank.generated.h"
 
 class UTankBarrel;
 class UTankTurrent;
-
+class AProjectile;
 UCLASS()
 class BATTLETANKVR_API ATank : public APawn
 {
@@ -42,4 +45,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Firing)
 		float LaunchSpeed = 4000; // TODO find sensible default
+
+	UPROPERTY(EditAnywhere, Category = Setup)
+		TSubclassOf<AProjectile> ProjectileBluePrint;
+
+	UTankBarrel* Barrel = nullptr;
 };
