@@ -50,4 +50,9 @@ private:
 		TSubclassOf<AProjectile> ProjectileBluePrint;
 
 	UTankBarrel* Barrel = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = Firing)
+	float ReloatTimeInSeconds = 3;
+
+	double LastFireTime = 10;
 };

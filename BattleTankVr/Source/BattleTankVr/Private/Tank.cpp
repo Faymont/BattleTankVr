@@ -47,9 +47,14 @@ void ATank::AimAt(FVector HitLocation)
 }
 
 void ATank::Fire() {
-	if (!Barrel) { return; }
-	if (!ProjectileBluePrint) { return; }
-
-	UE_LOG(LogTemp, Error, TEXT("BOOM"));
-	GetWorld()->SpawnActor<AProjectile>(ProjectileBluePrint,Barrel->GetSocketLocation(FName("Projectile")), Barrel->GetSocketRotation(FName("Projectile")));
+	bool isRealoaded = (FPlatformTime::Seconds() - LastFireTime) > ReloatTimeInSeconds;
+	if (Barrel && isRealoaded) {
+		auto Projectile = GetWorld()->SpawnActor<AProjectile>(
+			ProjectileBluePrint,
+			Barrel->GetSocketLocation(FName("Projectile")),
+			Barrel->GetSocketRotation(FName("Projectile"))
+			);
+		Projectile->LaunchProjectile(LaunchSpeed);
+		LastFireTime = FPlatformTime::Seconds();
+	}
 }
